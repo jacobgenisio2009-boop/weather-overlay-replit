@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Map</title>
+    <link rel="stylesheet" href="styles.css?v=20260228n">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* Weather Map Specific Styles */
+        .weather-map-container { display: none; }
+
+        .weather-map-header {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+        }
+
+        .weather-map-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.025em;
+        }
+
+        .weather-map-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .map-control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            color: #ffffff;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .map-control-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .map-control-btn.active {
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            border-color: rgba(96, 165, 250, 0.3);
+            color: #ffffff;
+        }
+
+        .weather-map-content {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #weather-map {
+            width: 100%;
+            height: 100%;
+            background: #1a1a2e;
+        }
+
+        .map-legend {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            z-index: 1000;
+            min-width: 250px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .legend-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .legend-header h3 {
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0;
+            text-align: center;
+            letter-spacing: 0.025em;
+            flex: 1;
+        }
+
+        .legend-close-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            width: 24px;
+            height: 24px;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .legend-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .legend-toggle-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: #ffffff;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .legend-section {
+            margin-bottom: 1rem;
+        }
+
+        .legend-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .legend-section h4 {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 12px;
+            border-radius: 2px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            flex-shrink: 0;
+        }
+
+        .legend-color.tornado { background: #ff3c1a; }
+        .legend-color.severe-thunderstorm { background: #ffb300; }
+        .legend-color.flood { background: #00e676; }
+        .legend-color.special-weather-statement { background: #6b42ff; }
+        .legend-color.tsunami { background: #ff6600; }
+        .legend-color.radar { background: linear-gradient(45deg, #00bfff, #0080ff); }
+
+        .map-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(26, 31, 46, 0.96);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #38bdf8;
+            padding: 1rem;
+            z-index: 1000;
+            min-width: 200px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .map-info h4 {
+            color: #ffffff;
+            font-size: 0.875rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+            text-align: center;
+            letter-spacing: 0.025em;
+        }
+
+        .map-info p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.75rem;
+            margin: 0.25rem 0;
+            text-align: center;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 15, 35, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(10px);
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #60a5fa;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.125rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .snow-report-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            display: none;
+        }
+        .snow-report-panel.visible {
+            display: block;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .weather-map-header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .weather-map-controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .map-legend {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                min-width: auto;
+                padding: 1rem;
+            }
+
+            .legend-toggle-btn {
+                top: 10px;
+                right: 10px;
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8125rem;
+            }
+
+            .map-info {
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="map-section" style="display: block; height: 100vh; width: 100vw; margin:0; padding:0;">
+        <div class="weather-map-header">
+            <div class="weather-map-title">Live Weather Map</div>
+            <div class="weather-map-controls">
+                <button id="radar-toggle" class="map-control-btn active" data-layer="radar">
+                    Radar
+                </button>
+                <button id="warnings-toggle" class="map-control-btn active" data-layer="warnings">
+                    Warnings
+                </button>
+                <button id="map-outages-toggle" class="map-control-btn" data-layer="power-outages">
+                    Power Outages
+                </button>
+                <button id="map-infra-toggle" class="map-control-btn" data-layer="infrastructure">
+                    Infrastructure
+                </button>
+                <div class="camera-cycle-control-wrapper">
+                    <button id="map-camera-cycle-btn" class="map-control-btn" data-layer="camera-cycle">
+                        DOT Cameras
+                    </button>
+                    <button id="map-camera-settings-btn" class="map-control-btn map-camera-settings-btn">
+                        Settings
+                    </button>
+                    <div id="camera-cycle-menu" class="map-dropdown camera-cycle-menu" hidden>
+                        <div class="camera-cycle-menu-title">Camera Settings</div>
+                        <label class="camera-cycle-menu-row">
+                            <span>Interval</span>
+                            <select id="camera-cycle-interval">
+                                <option value="5000">5s</option>
+                                <option value="7500">7.5s</option>
+                                <option value="12000">12s</option>
+                            </select>
+                        </label>
+                        <label class="camera-cycle-menu-row">
+                            <span>Range</span>
+                            <select id="camera-cycle-distance">
+                                <option value="80">50 mi</option>
+                                <option value="160">100 mi</option>
+                                <option value="240">150 mi</option>
+                            </select>
+                        </label>
+                        <label class="camera-cycle-menu-row">
+                            <span>Max Cams</span>
+                            <select id="camera-cycle-maxcams">
+                                <option value="12">12</option>
+                                <option value="20">20</option>
+                                <option value="30">30</option>
+                            </select>
+                        </label>
+                        <button type="button" id="camera-cycle-refresh-btn">Refresh Cameras</button>
+                    </div>
+                </div>
+                <button id="satellite-toggle" class="map-control-btn" data-layer="satellite">
+                    Satellite
+                </button>
+            </div>
+        </div>
+
+        <div class="weather-map-content">
+            <div class="embedded-weather-map" style="width:100%; height: calc(100vh - 72px);">
+                <div id="weather-map"></div>
+            </div>
+
+            <div id="snow-report-panel" class="snow-report-panel"></div>
+
+            <div id="map-legend" class="map-legend">
+                <div class="legend-header">
+                    <h3>Legend</h3>
+                    <button id="legend-close-btn" class="legend-close-btn">×</button>
+                </div>
+                <div class="legend-section">
+                    <h4>Warnings</h4>
+                    <div class="legend-items">
+                        <div class="legend-item"><span class="legend-color tornado"></span> Tornado Warning</div>
+                        <div class="legend-item"><span class="legend-color severe-thunderstorm"></span> Severe Thunderstorm Warning</div>
+                        <div class="legend-item"><span class="legend-color flood"></span> Flood Warning</div>
+                        <div class="legend-item"><span class="legend-color special-weather-statement"></span> Special Weather Statement</div>
+                        <div class="legend-item"><span class="legend-color tsunami"></span> Tsunami Warning</div>
+                    </div>
+                </div>
+                <div class="legend-section">
+                    <h4>Layers</h4>
+                    <div class="legend-items">
+                        <div class="legend-item"><span class="legend-color radar"></span> Radar Reflectivity</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="map-info">
+                <h4>Map Status</h4>
+                <p id="map-center">Center: --</p>
+                <p id="map-zoom">Zoom: --</p>
+                <p id="active-warnings">Active Warnings: --</p>
+            </div>
+
+            <div id="loading-overlay" class="loading-overlay">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Loading map and live data…</div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+    <script src="script.js?v=20260228d"></script>
+    <script>
+        // Provide a proper User-Agent header value for NWS API etiquette
+        window.NWS_USER_AGENT = 'js-weather-overlay/1.0 (+https://example.com; contact: you@example.com)';
+        // Do not show warnings-page style notification popups on the standalone map
+        window.notificationPopupsEnabled = false;
+    </script>
+    <!-- HLS playback for DOT camera streams -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.5/dist/hls.min.js"></script>
+    <script src="weather-map.js?v=20260228n"></script>
+    <script>
+        // Initialize the map when the page loads
+        window.addEventListener('load', () => {
+            if (typeof window.initWeatherMap === 'function') {
+                window.initWeatherMap();
+            }
+        });
+    </script>
+</body>
+</html>

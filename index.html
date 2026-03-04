@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <title>Weather Warning Dashboard | Ryan Hall, Y'all Style</title>
+    <link rel="stylesheet" href="styles.css?v=20260303b">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- MapLibre GL CSS for the in-page map -->
+    <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
+</head>
+<body>
+    <!-- Header with Navigation -->
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo">
+                <div id="header-warning-stats" class="header-warning-stats" aria-live="polite" aria-label="Warning counters">
+                    <div class="footer-stat"><span>0</span><span class="label">ACTIVE</span></div>
+                    <div class="footer-stat emergency"><span>0</span><span class="label">EMERGENCY</span></div>
+                    <div class="footer-stat tornado"><span>0</span><span class="label">TORNADO</span></div>
+                    <div class="footer-stat severe"><span>0</span><span class="label">SEVERE</span></div>
+                    <div class="footer-stat flood"><span>0</span><span class="label">FLOOD</span></div>
+                    <div class="footer-stat hurricane"><span>0</span><span class="label">HURRICANE</span></div>
+                    <div class="footer-stat tropical-storm"><span>0</span><span class="label">TROP. STORM</span></div>
+                    <div class="footer-stat winter-storm"><span>0</span><span class="label">WINTER STORM</span></div>
+                    <div class="footer-stat states"><span>0</span><span class="label">STATES</span></div>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <div class="nav-dropdown">
+                    <button class="nav-dropdown-btn active" id="nav-warnings-btn">
+                        Warnings <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="nav-dropdown-menu" id="warnings-dropdown">
+                        <button class="dropdown-item active" id="dropdown-sort-important">
+                            <i class="fas fa-bolt"></i> Most Important
+                        </button>
+                        <button class="dropdown-item" id="dropdown-sort-recent">
+                            <i class="far fa-clock"></i> Most Recent
+                        </button>
+                        <button class="dropdown-item" id="dropdown-sort-saved">
+                            <i class="fas fa-bookmark"></i> Saved
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" id="dropdown-map-btn">
+                            <i class="fas fa-map"></i> Map View
+                        </button>
+                    </div>
+                </div>
+            </nav>
+            <div class="header-actions">
+                <div class="search-box">
+                    <input type="text" id="warning-search" placeholder="Search warnings...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <button class="settings-btn" id="main-settings-btn">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <button class="settings-btn" id="header-weatherwise-btn" title="Open WeatherWise" aria-label="Open WeatherWise" onclick="try { openWeatherWisePopout(); } catch (e) { window.location.href='https://web.weatherwise.app/#map=5.19/37.487/-89.431&rt=KLSX&rp=N0B&m=RADAR&sc=GOES-East&sp=ABI_GeoColor'; } return false;">
+                    <svg class="weatherwise-logo-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                        <defs>
+                            <linearGradient id="wwLogoTop" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#ffd95f"/>
+                                <stop offset="100%" stop-color="#f2b300"/>
+                            </linearGradient>
+                            <linearGradient id="wwLogoShade" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#ffc12a"/>
+                                <stop offset="100%" stop-color="#ef9e00"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M4 5.2C10.2 2.6 21.8 2.6 28 4.6L27 9.8C21.1 8.9 10.9 8.9 5 10.8Z" fill="url(#wwLogoTop)"/>
+                        <path d="M5 10.8C11 8.9 20.4 8.9 27 9.8L23.7 12.2C18.6 11.9 12.7 12.1 6.8 13.7Z" fill="url(#wwLogoShade)"/>
+                        <path d="M7 14C11.8 11.9 19.1 11.8 24 13.6L23 18.4C18 17.8 13.4 18.1 8.4 20.4Z" fill="url(#wwLogoTop)"/>
+                        <path d="M8.4 20.4C13.2 18.2 17.8 17.9 22.8 18.4L19.5 20.8C15.9 20.6 12.8 21 9.5 22.6Z" fill="url(#wwLogoShade)"/>
+                        <path d="M11 22.8C14.6 21.1 18.1 21 21.2 22.1L20.4 26.7C17.3 27.1 14.8 28.3 12.2 30.2Z" fill="url(#wwLogoTop)"/>
+                    </svg>
+                </button>
+                <button class="settings-btn header-storm-reports-btn" id="header-storm-reports-btn" title="Open Storm Reports" aria-label="Open Storm Reports" onclick="if (window.openStormReportsDashboard) { return window.openStormReportsDashboard(); } return false;">
+                    <i class="fa-regular fa-file-lines"></i>
+                </button>
+                <button class="settings-btn header-scanner-btn" id="header-scanner-btn" title="Open Scanner Intelligence" aria-label="Open Scanner Intelligence" onclick="if (window.openScannerDashboard) { return window.openScannerDashboard(); } return false;">
+                    <i class="fa-solid fa-tower-broadcast"></i>
+                </button>
+                <button class="settings-btn header-ryan-live-btn" id="header-ryan-live-btn" title="Open Ryan Live" aria-label="Open Ryan Live" onclick="if (window.openRyanLiveView) { return window.openRyanLiveView(); } return false;">
+                    <i class="fa-solid fa-circle-play"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section removed -->
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Warning Sort Menu moved to header dropdown -->
+        
+        <!-- Warnings Grid -->
+        <div class="warnings-grid" id="warnings-list">
+            <div class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>Loading live warnings from NWS API...</p>
+            </div>
+        </div>
+
+        <!-- Embedded Weather Map Section (hidden by default) -->
+        <section id="map-section" class="map-section" style="display: none;">
+            <div class="weather-map-header">
+                <div class="weather-map-title">Live Weather Map</div>
+                <div class="weather-map-controls">
+                    <button id="radar-toggle" class="map-control-btn active" data-layer="radar">
+                        <i class="fa-solid fa-satellite-dish"></i> Radar
+                    </button>
+                    <button id="warnings-toggle" class="map-control-btn active" data-layer="warnings">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Warnings
+                    </button>
+                    <button type="button" id="map-outages-toggle" class="map-control-btn" data-layer="power-outages" title="Toggle county power outages">
+                        <i class="fa-solid fa-bolt"></i> Power Outages
+                    </button>
+                    <button type="button" id="map-infra-toggle" class="map-control-btn" data-layer="infrastructure" title="Toggle critical infrastructure">
+                        <i class="fa-solid fa-plug-circle-bolt"></i> Infrastructure
+                    </button>
+                    <div class="spc-control-wrapper">
+                    <button type="button" id="map-spc-outlook-btn" class="map-control-btn" data-layer="spc-outlook">
+                        <i class="fa-solid fa-bolt"></i> SPC Outlook
+                    </button>
+                        <div id="spc-day-menu" class="map-dropdown spc-day-menu" hidden>
+                            <div class="map-dropdown-title">Convective Days 1-3</div>
+                            <button data-day="day1" class="spc-menu-item">
+                                <span class="spc-menu-main">Day 1</span>
+                                <span class="spc-menu-meta">Current convective outlook</span>
+                            </button>
+                            <button data-day="day2" class="spc-menu-item">
+                                <span class="spc-menu-main">Day 2</span>
+                                <span class="spc-menu-meta">Next-day convective outlook</span>
+                            </button>
+                            <button data-day="day3" class="spc-menu-item">
+                                <span class="spc-menu-main">Day 3</span>
+                                <span class="spc-menu-meta">Extended convective outlook</span>
+                            </button>
+                            <div class="map-dropdown-separator"></div>
+                            <div class="map-dropdown-title">Probabilistic Days 4-8</div>
+                            <button data-day="day4" class="spc-menu-item">
+                                <span class="spc-menu-main">Day 4</span>
+                                <span class="spc-menu-meta">Experimental probability</span>
+                            </button>
+                            <button data-day="day5" class="spc-menu-item">
+                                <span class="spc-menu-main">Day 5</span>
+                                <span class="spc-menu-meta">Experimental probability</span>
+                            </button>
+                            <button data-day="day6" class="spc-menu-item">
+                                <span class="spc-menu-main">Day 6</span>
+                                <span class="spc-menu-meta">Experimental probability</span>
+                            </button>
+                            <button data-day="day7" class="spc-menu-item">
+                                <span class="spc-menu-main">Day 7</span>
+                                <span class="spc-menu-meta">Experimental probability</span>
+                            </button>
+                            <button data-day="day8" class="spc-menu-item">
+                                <span class="spc-menu-main">Day 8</span>
+                                <span class="spc-menu-meta">Experimental probability</span>
+                            </button>
+                            <div class="map-dropdown-separator"></div>
+                            <button data-action="hide" class="spc-menu-item spc-menu-hide">
+                                <span class="spc-menu-main">Hide Outlook</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" id="map-storm-reports-btn" class="map-control-btn" title="Toggle LSR Storm Reports"><i class="fa-solid fa-bolt"></i> Storm Reports</button>
+                    <div class="camera-cycle-control-wrapper">
+                        <button type="button" id="map-camera-cycle-btn" class="map-control-btn" data-layer="camera-cycle" title="Toggle DOT cameras">
+                            <i class="fa-solid fa-camera"></i> DOT Cameras
+                        </button>
+                        <button type="button" id="map-camera-settings-btn" class="map-control-btn map-camera-settings-btn" title="Camera settings">
+                            <i class="fa-solid fa-sliders"></i>
+                        </button>
+                        <div id="camera-cycle-menu" class="map-dropdown camera-cycle-menu" hidden>
+                            <div class="camera-cycle-menu-title">Camera Settings</div>
+                            <label class="camera-cycle-menu-row">
+                                <span>Interval</span>
+                                <select id="camera-cycle-interval">
+                                    <option value="5000">5s</option>
+                                    <option value="7500">7.5s</option>
+                                    <option value="12000">12s</option>
+                                </select>
+                            </label>
+                            <label class="camera-cycle-menu-row">
+                                <span>Range</span>
+                                <select id="camera-cycle-distance">
+                                    <option value="80">50 mi</option>
+                                    <option value="160">100 mi</option>
+                                    <option value="240">150 mi</option>
+                                </select>
+                            </label>
+                            <label class="camera-cycle-menu-row">
+                                <span>Max Cams</span>
+                                <select id="camera-cycle-maxcams">
+                                    <option value="12">12</option>
+                                    <option value="20">20</option>
+                                    <option value="30">30</option>
+                                </select>
+                            </label>
+                            <button type="button" id="camera-cycle-refresh-btn">Refresh Cameras</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="spc-category-container" class="spc-category-container" hidden>
+                    <button id="spc-category-button" class="map-control-btn">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span id="spc-category-label">Categorical</span>
+                    </button>
+                    <div id="spc-category-menu" class="map-dropdown spc-category-menu" hidden>
+                        <div class="map-dropdown-title">Convective Categories</div>
+                        <button data-category="cat" class="spc-menu-item">
+                            <span class="spc-menu-main">Categorical</span>
+                            <span class="spc-menu-meta">General severe risk levels</span>
+                        </button>
+                        <button data-category="torn" class="spc-menu-item">
+                            <span class="spc-menu-main">Tornado</span>
+                            <span class="spc-menu-meta">Tornado probability</span>
+                        </button>
+                        <button data-category="wind" class="spc-menu-item">
+                            <span class="spc-menu-main">Wind</span>
+                            <span class="spc-menu-meta">Damaging wind probability</span>
+                        </button>
+                        <button data-category="hail" class="spc-menu-item">
+                            <span class="spc-menu-main">Hail</span>
+                            <span class="spc-menu-meta">Large hail probability</span>
+                        </button>
+                        <button data-category="prob" class="spc-menu-item">
+                            <span class="spc-menu-main">Probabilistic</span>
+                            <span class="spc-menu-meta">Any severe probability (Day 3)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="weather-map-content">
+                <!-- Map container wrapper sized by JS to fill viewport -->
+                <div class="embedded-weather-map">
+                    <div id="weather-map"></div>
+                </div>
+
+                <!-- Broadcast-style map HUD -->
+                <div class="map-broadcast-hud" id="map-broadcast-hud" aria-hidden="true">
+                    <div class="map-hud-left-card" id="map-hud-left-card">
+                        <button class="map-hud-close-btn" id="map-hud-close-btn" type="button" aria-label="Clear selected warning">×</button>
+                        <div class="map-hud-card-title" id="map-hud-card-title">ACTIVE WARNING</div>
+                        <div class="map-hud-card-expire" id="map-hud-card-expire">EXPIRES IN -- MIN</div>
+                        <div class="map-hud-progress">
+                            <span class="map-hud-progress-red" id="map-hud-progress-red"></span>
+                            <span class="map-hud-progress-white"></span>
+                        </div>
+                        <div class="map-hud-card-metrics">
+                            <div class="map-hud-chip" id="map-hud-chip-state">US</div>
+                        </div>
+                        <div class="map-hud-alert-row" id="map-hud-alert1-row">
+                            <span class="map-hud-alert-text" id="map-hud-alert1">TORNADO POSSIBLE</span>
+                        </div>
+                        <div class="map-hud-alert-row" id="map-hud-alert2-row">
+                            <span class="map-hud-alert-text" id="map-hud-alert2">CONSIDERABLE DAMAGE THREAT</span>
+                        </div>
+                        <div class="map-hud-metric-grid" id="map-hud-metric-grid">
+                            <div class="map-hud-hail-box" id="map-hud-hail-box">
+                                <span class="map-hud-hail-label">MAX HAIL</span>
+                                <span class="map-hud-hail-value" id="map-hud-hail-value">-- IN</span>
+                            </div>
+                            <div class="map-hud-hail-box map-hud-wind-box" id="map-hud-wind-box">
+                                <span class="map-hud-hail-label">MAX WIND</span>
+                                <span class="map-hud-hail-value" id="map-hud-wind-value">-- MPH</span>
+                            </div>
+                        </div>
+                        <div class="map-hud-card-row">
+                            <span class="map-hud-label">AREAS</span>
+                            <span class="map-hud-value" id="map-hud-areas">Multiple Counties</span>
+                        </div>
+                        <div class="map-hud-card-row">
+                            <span class="map-hud-label">SOURCE</span>
+                            <span class="map-hud-value" id="map-hud-source">NWS REPORT</span>
+                        </div>
+                    </div>
+
+                    <div class="map-hud-right-card">
+                        <div class="map-hud-right-header">
+                            <span>LOCAL RADAR</span>
+                            <span id="map-hud-clock">--:-- --</span>
+                        </div>
+                        <div class="map-hud-scale">
+                            <span class="scale-bar"></span>
+                            <div class="scale-labels">
+                                <span>LIGHT</span>
+                                <span>MODERATE</span>
+                                <span>HEAVY</span>
+                                <span>EXTREME</span>
+                            </div>
+                        </div>
+                        <div class="map-hud-radar-meta">KVWX • 0.4° • <span id="map-hud-state-right">NATIONAL</span></div>
+                    </div>
+                </div>
+
+                <div id="snow-report-panel" class="snow-report-panel"></div>
+
+                <div id="legend-bar" class="legend-bar" aria-live="polite" hidden></div>
+
+                <!-- Map info panel -->
+                <div class="map-info">
+                    <h4>Map Status</h4>
+                    <p id="map-center">Center: --</p>
+                    <p id="map-zoom">Zoom: --</p>
+                    <p id="active-warnings">Active Warnings: --</p>
+                </div>
+
+                <!-- Loading overlay while map/data initializes -->
+                <div id="loading-overlay" class="loading-overlay">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Loading map and live data…</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="ryan-live-section" class="ryan-live-section" aria-hidden="true">
+            <div class="ryan-live-shell storm-desk-shell-enter" role="dialog" aria-modal="true" aria-label="Ryan Live">
+                <button type="button" class="ryan-live-close" id="ryan-live-close" aria-label="Close Ryan Live">&times;</button>
+                <div class="ryan-live-top storm-desk-item-anim" style="--storm-desk-delay:20ms;">
+                    <div class="ryan-live-icon"><i class="fa-solid fa-circle-play"></i></div>
+                    <h2 class="ryan-live-title">Ryan Live</h2>
+                    <p class="ryan-live-subtitle">YouTube Stream Desk</p>
+                </div>
+                <div class="ryan-live-grid storm-desk-item-anim" style="--storm-desk-delay:55ms;">
+                    <div class="ryan-live-main">
+                        <div class="ryan-live-launch">
+                            <h3>Ryan Live Stream</h3>
+                            <p>Use the movable player. It can be minimized and kept across all pages.</p>
+                            <div class="ryan-live-url-controls">
+                                <input id="ryan-video-link-input" class="ryan-live-url-input" type="url" placeholder="Paste a video URL (YouTube, Vimeo, or direct link)" autocomplete="off" spellcheck="false">
+                                <button id="ryan-video-load-btn" class="map-control-btn" type="button">Load Video</button>
+                                <button id="ryan-video-default-btn" class="map-control-btn" type="button">Reset Default</button>
+                            </div>
+                            <div class="ryan-live-launch-actions">
+                                <button id="ryan-float-open-btn" class="map-control-btn">Pop Out Player</button>
+                                <button id="ryan-float-min-btn" class="map-control-btn">Minimize Player</button>
+                            </div>
+                        </div>
+                        <a class="ryan-live-link" href="https://www.youtube.com/@RyanHallYall/live" target="_blank" rel="noopener noreferrer">
+                            Open Ryan Live on YouTube
+                        </a>
+                    </div>
+                    <aside class="ryan-live-warnings-panel">
+                        <div class="ryan-live-warnings-title">Top Warnings</div>
+                        <div id="ryan-live-top-warnings" class="ryan-live-top-warnings"></div>
+                    </aside>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Left-side Active Warnings Sidebar -->
+    <aside id="left-stats" class="left-stats" aria-label="Active warnings"></aside>
+
+    <!-- Movable Ryan floating player -->
+    <section id="ryan-floating-player" class="ryan-floating-player hidden minimized" aria-label="Ryan live player">
+        <div id="ryan-float-header" class="ryan-float-header">
+            <div class="ryan-float-meta">
+                <div class="ryan-float-title">RYAN HALL LIVE</div>
+                <div class="ryan-float-subtitle">YOUTUBE STREAM</div>
+            </div>
+            <div class="ryan-float-actions">
+                <button id="ryan-float-follow-btn" class="ryan-float-btn follow">Follow</button>
+                <button id="ryan-float-refresh-btn" class="ryan-float-btn icon" title="Refresh Stream">↻</button>
+                <button id="ryan-float-popout-btn" class="ryan-float-btn icon" title="Open on YouTube">↗</button>
+                <button id="ryan-float-toggle-btn" class="ryan-float-btn icon" title="Minimize/Restore">▁</button>
+                <button id="ryan-float-close-btn" class="ryan-float-btn icon close" title="Close">×</button>
+            </div>
+        </div>
+        <div id="ryan-float-body" class="ryan-float-body">
+            <iframe
+                id="ryan-floating-iframe"
+                src="about:blank"
+                title="Ryan Hall Yall Floating Stream"
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen>
+            </iframe>
+        </div>
+        <button id="ryan-float-restore-pill" class="ryan-float-restore-pill" type="button">Ryan Live</button>
+        <div id="ryan-float-resize" class="ryan-float-resize" aria-hidden="true"></div>
+    </section>
+
+    <!-- Scripts -->
+    <script src="script.js?v=20260304b"></script>
+    <!-- MapLibre GL JS -->
+    <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+    <!-- Weather map logic (exposes window.initWeatherMap) -->
+    <script src="weather-map.js?v=20260302m"></script>
+</body>
+</html>
+ 

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Tornado Sorting</title>
+</head>
+<body>
+    <h1>Tornado Warning Sorting Test</h1>
+    <div id="test-results"></div>
+    
+    <script src="script.js"></script>
+    <script>
+        // Test data for different types of tornado warnings
+        const testWarnings = [
+            {
+                properties: {
+                    event: 'Tornado Warning',
+                    headline: 'TORNADO WARNING CONFIRMED BY RADAR',
+                    description: 'Radar has confirmed a tornado',
+                    areaDesc: 'Test County'
+                }
+            },
+            {
+                properties: {
+                    event: 'Tornado Warning', 
+                    headline: 'TORNADO WARNING SPOTTER CONFIRMED',
+                    description: 'Spotter has confirmed a tornado on the ground',
+                    areaDesc: 'Test County'
+                }
+            },
+            {
+                properties: {
+                    event: 'Tornado Warning',
+                    headline: 'TORNADO WARNING',
+                    description: 'Radar indicated rotation',
+                    areaDesc: 'Test County'
+                }
+            }
+        ];
+
+        function runTests() {
+            const results = document.getElementById('test-results');
+            let html = '<h2>Test Results:</h2>';
+            
+            // Test function existence
+            html += '<h3>Function Tests:</h3>';
+            html += `<p>isRadarConfirmedTornado exists: ${typeof isRadarConfirmedTornado === 'function'}</p>`;
+            html += `<p>isSpotterConfirmedTornado exists: ${typeof isSpotterConfirmedTornado === 'function'}</p>`;
+            html += `<p>sortWarningsByImportance exists: ${typeof sortWarningsByImportance === 'function'}</p>`;
+            
+            // Test detection functions
+            html += '<h3>Detection Tests:</h3>';
+            testWarnings.forEach((warning, index) => {
+                const radarConfirmed = isRadarConfirmedTornado(warning.properties);
+                const spotterConfirmed = isSpotterConfirmedTornado(warning.properties);
+                html += `<p>Warning ${index + 1} - ${warning.properties.headline}:</p>`;
+                html += `<ul>`;
+                html += `<li>Radar Confirmed: ${radarConfirmed}</li>`;
+                html += `<li>Spotter Confirmed: ${spotterConfirmed}</li>`;
+                html += `</ul>`;
+            });
+            
+            // Test sorting
+            html += '<h3>Sorting Test:</h3>';
+            const sorted = sortWarningsByImportance([...testWarnings]);
+            html += '<p>Sorted order (should be: spotter confirmed, radar confirmed, radar indicated):</p>';
+            sorted.forEach((warning, index) => {
+                html += `<p>${index + 1}. ${warning.properties.headline}</p>`;
+            });
+            
+            results.innerHTML = html;
+        }
+
+        // Run tests after page loads
+        window.addEventListener('load', runTests);
+    </script>
+</body>
+</html>
